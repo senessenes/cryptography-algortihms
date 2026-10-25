@@ -1,0 +1,37 @@
+def extended_eucledian(a,n):
+	remainders=[]
+	coefficients=[]
+	a1=a
+	b1=n
+	
+	
+	while True:
+		r=a1%b1
+		
+		q=(a1-r)/b1
+		remainders.append(r)
+		coefficients.append(q)
+		a1=b1
+		b1=r
+		
+		if r==0:
+			break
+	coefficient_of_a=1
+	l=len(remainders)
+	ca1=1
+	ca2=-coefficients[1]
+	a_coefficients=[ca1,ca2]
+	for remainder in range(2,l-1):
+		coefficient_of_a=a_coefficients[remainder-2]-coefficients[remainder]*a_coefficients[remainder-1]
+		a_coefficients.append(coefficient_of_a)
+	
+	
+		
+		
+
+
+	gcd=remainders[l-2]
+	return {"gcd":gcd,"modular_inverse":(a_coefficients[l-2]) if gcd==1 else "no inverse"}
+
+
+
