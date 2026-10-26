@@ -8,7 +8,7 @@ So far, I have focused on classical ciphers and the math behind them. Below is a
 
 ### 1. `general_tools.py`
 
-This file contains foundational math algorithms and text-processing tools used frequently in cryptography. I import this into my other cipher scripts to avoid rewriting code.
+This file contains foundational math algorithms and text-processing tools used frequently in cryptography. I import this into my other cipher scripts to avoid rewriting code. It utilizes `numpy` for matrix operations.
 
 **Constants:**
 *   `english_freqs`: An array containing the standard frequencies of the 26 letters in the English language.
@@ -21,14 +21,19 @@ This file contains foundational math algorithms and text-processing tools used f
     *   **Usage:** Used to convert plain text into a mathematical format before applying encryption formulas.
 
 *   `denumerate(number)`
-    *   **Arguments:** `number` (list of integers) - A list of numbers from 0 to 25.
+    *   **Arguments:** `number` (list of integers/floats) - A list of numbers representing letters.
     *   **Returns:** A reconstructed string of uppercase letters.
     *   **Usage:** Used to convert math results back into readable cipher or plain text.
 
 *   `extended_eucledian(a, n)`
     *   **Arguments:** `a` (int), `n` (int) - Two integers to evaluate.
     *   **Returns:** A dictionary containing `{"gcd": value, "modular_inverse": value}`. If the GCD is not 1, the modular inverse value will be "no inverse".
-    *   **Usage:** Crucial for number theory operations, specifically finding the greatest common divisor (GCD) and calculating the modular inverse needed for decrypting affine ciphers.
+    *   **Usage:** Crucial for number theory operations, specifically finding the greatest common divisor (GCD) and calculating the modular inverse.
+
+*   `adj(A)`
+    *   **Arguments:** `A` (numpy array) - A square matrix.
+    *   **Returns:** The adjugate (or adjoint) matrix of `A` (the transpose of the cofactor matrix).
+    *   **Usage:** Used for finding the inverse of a matrix over a modulo, which is necessary for decrypting block ciphers like the Hill cipher.
 
 ### 2. `affine.py`
 
@@ -48,11 +53,11 @@ This file implements the Affine Cipher, where each letter $x$ is encrypted using
 *   `decrypt_cipher_only(c)`
     *   **Arguments:** `c` (string) - The cipher text to attack.
     *   **Returns:** A list of lists, where each inner list contains `[possible_decrypted_text, a, b]`.
-    *   **Usage:** A brute-force attack function. Since there are only 312 valid keys for the Affine Cipher in the English alphabet, this iterates through all possible valid combinations of $a$ and $b$ to guess the message.
+    *   **Usage:** A brute-force attack function. Iterates through all 312 possible valid combinations of $a$ and $b$ to guess the message.
 
 ### 3. `viegenere.py`
 
-This file implements the Vigenère Cipher, a polyalphabetic substitution cipher, as well as functions to perform cryptanalysis and break the cipher without knowing the key. *(Note: This file contains its own local copies of `numerate` and `denumerate` for standalone use).*
+This file implements the Vigenère Cipher, a polyalphabetic substitution cipher, as well as functions to perform cryptanalysis.
 
 **Functions:**
 *   `encrypt(plain_text, key)`
@@ -68,14 +73,29 @@ This file implements the Vigenère Cipher, a polyalphabetic substitution cipher,
 *   `determine_key_size(cipher)`
     *   **Arguments:** `cipher` (string) - The intercepted cipher text.
     *   **Returns:** A list of match counts for various potential key lengths.
-    *   **Usage:** A cryptanalysis tool (related to the Kasiski examination/index of coincidence). It compares the cipher text against shifted versions of itself to find repeating patterns, which helps deduce the length of the unknown keyword.
+    *   **Usage:** A cryptanalysis tool to find repeating patterns, helping deduce the length of the unknown keyword.
 
 *   `total_probability(l1, l2)`
     *   **Arguments:** `l1`, `l2` (lists of floats) - Two lists of frequency probabilities.
     *   **Returns:** The sum of the products of the two lists (dot product).
-    *   **Usage:** A helper mathematical function used during frequency analysis to compare expected English letter frequencies with actual frequencies in the text.
+    *   **Usage:** Used during frequency analysis to compare expected English letter frequencies with actual frequencies.
 
 *   `best_key_guess(key_length, cipher)`
     *   **Arguments:** `key_length` (int), `cipher` (string) - The guessed length of the keyword and the cipher text.
     *   **Returns:** A list of characters representing the most probable keyword.
-    *   **Usage:** Performs frequency analysis on slices of the cipher text. By comparing the letter distributions of the cipher text slices against standard English frequencies (`english_freqs`), it programmatically guesses the most likely letters of the keyword.
+    *   **Usage:** Performs frequency analysis on slices of the cipher text to programmatically guess the most likely letters of the keyword.
+
+### 4. `block_ciphers.py`
+
+This file implements the Hill Cipher, a polygraphic substitution cipher based on linear algebra. It uses matrices to encrypt blocks of text simultaneously.
+
+**Functions:**
+*   `encrypt(plain_text, key)`
+    *   **Arguments:** `plain_text` (string), `key` (numpy array) - The message to encrypt and an $n \times n$ encryption key matrix.
+    *   **Returns:** The encrypted cipher text string.
+    *   **Usage:** Groups the plain text into vectors of length $n$. If the plain text length is not a multiple of $n$, it pads the end of the text with the letter "X". It then multiplies the row vectors by the key matrix modulo 26 to generate the cipher text.
+
+*   `decrypt(cipher, encryption_key)`
+    *   **Arguments:** `cipher` (string), `encryption_key` (numpy array) - The encrypted message and the original $n \times n$ encryption key matrix.
+    *   **Returns:** The decrypted plain text string.
+    *   **Usage:** Decrypts the cipher text by first calculating the inverse of the encryption key matrix modulo 26. It achieves this by finding the determinant of the key matrix, calculating its modular inverse, and multiplying it by the adjugate matrix (`tools.adj()`). Finally, it multiplies the cipher row vectors by this decryption matrix modulo 26 to recover the plain text.
