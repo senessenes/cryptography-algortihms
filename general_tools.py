@@ -1,10 +1,12 @@
-
+import numpy as np
+import copy
 english_freqs = [
     0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094,
     0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749, 0.07507, 0.01929,
     0.00095, 0.05987, 0.06327, 0.09056, 0.02758, 0.00978, 0.02360, 0.00150,
     0.01974, 0.00074
 ]
+
 alphabet=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]
 def numerate(word):
         result=[]
@@ -50,4 +52,17 @@ def extended_eucledian(a,n):
 
         gcd=remainders[l-2]
         return {"gcd":gcd,"modular_inverse":(a_coefficients[l-2]) if gcd==1 else "no inverse"}
-
+def adj(A):
+	cofactor_matrix = np.zeros_like(A, dtype=float)
+	
+	for i in range(0,len(A)):
+		for x in range(0,len(A[i])):
+		
+			M1=np.delete(A,i,axis=0)
+			
+			cofactor=((-1)**(x+i))*round(np.linalg.det(np.delete(M1,x,axis=1)))
+			cofactor_matrix[i][x]=cofactor
+	return cofactor_matrix.T
+			
+			
+	
